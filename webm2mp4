@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Script para convertir un archivo .webm a .mp4.
+# Por defecto, establece la tasa de cuadros (frame rate) a 30 fps.
+# Uso: webm2mp4 archivo_entrada.webm [tasa_fps_opcional]
+# Ejemplo: webm2mp4 video.webm       # Convertirá a 30 fps
+# Ejemplo: webm2mp4 video.webm 25    # Convertirá a 25 fps
+
+# Verifica si se proporcionó al menos el archivo de entrada
+if [ -z "$1" ]; then
+    echo "Error: Debe proporcionar el nombre del archivo .webm."
+    echo "Uso: $0 archivo_entrada.webm [tasa_fps_opcional]"
+    exit 1
+fi
+
+INPUT_FILE="$1"
+OUTPUT_FILE="${INPUT_FILE%.*}.mp4"
+DEFAULT_FPS=30
+
+# ----------------------------------------------------
+# 1. Determina la tasa de cuadros (FPS)
+# Si se proporciona un segundo argumento, úsalo. Si no, usa el valor por defecto (30).
+if [ -n "$2" ]; then
+    FRAME_RATE="$2"
+    echo "Usando tasa de cuadros especificada: $FRAME_RATE fps."
+else
+    FRAME_RATE="$DEFAULT_FPS"
+    echo "Usando tasa de cuadros por defecto: $FRAME_RATE fps."
+fi
+# ----------------------------------------------------
+
+# Verifica si el archivo de entrada existe
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "Error: El archivo de entrada '$INPUT_FILE' no existe."
+    exit 1
+fi
+
+echo "Convirtiendo '$INPUT_FILE' a '$OUTPUT_FILE' con -r $FRAME_RATE..."
+echo "Comando: ffmpeg -fflags +genpts -i \"$INPUT_FILE\" -r $FRAME_RATE \"$OUTPUT_FILE\""
+
+# Ejecuta el comando de FFmpeg
+ffmpeg -fflags +genpts -i "$INPUT_FILE" -r "$FRAME_RATE" "$OUTPUT_FILE"
+
+# Verifica el estado de salida
+if [ $? -eq 0 ]; then
+    echo "✅ Conversión completada con éxito: '$OUTPUT_FILE'"
+else
+    echo "❌ Error: La conversión falló. Verifique la salida de FFmpeg."
+fi
